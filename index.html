@@ -31,7 +31,7 @@
             height: 100vh;
             width: 100vw;
         }
-        
+
         /* SIDEBAR */
         #sidebar {
             width: 340px;
@@ -274,13 +274,27 @@
                             fillOpacity: 0.9
                         }),
                     onEachFeature: (feature, layer) => {
-                        let props = feature.properties;
-                        layer.bindPopup(`
-                            <b>Tipo:</b> ${props.tipo || "No definido"}<br>
-                            <b>Fecha:</b> ${props.fecha || "Sin fecha"}<br>
-                            <b>Descripción:</b> ${props.descripcion || "Sin información"}
-                        `);
-                    }
+					    let props = feature.properties;
+					
+					    // Foto: si existe URL válida, mostrar <img>, si no, texto.
+					    let fotoHTML = "";
+					
+					    if (props.foto && typeof props.foto === "string" && props.foto.trim() !== "") {
+					        fotoHTML = `<b>Foto:</b><br>
+					                    <img src="${props.foto}" 
+					                         alt="Foto incidente" 
+					                         style="width: 220px; margin-top: 5px; border-radius: 6px;">`;
+					    } else {
+					        fotoHTML = `<b>Foto:</b> Sin foto`;
+					    }
+					
+					    layer.bindPopup(`
+					        <b>Tipo:</b> ${props.tipo || "No definido"}<br>
+					        <b>Fecha:</b> ${props.fecha || "Sin fecha"}<br>
+					        <b>Descripción:</b> ${props.descripcion || "Sin información"}<br>
+					        ${fotoHTML}
+					    `);
+}
                 }).addTo(map);
 
                 // Actualiza contador en el sidebar
@@ -296,4 +310,3 @@
 
 </body>
 </html>
-
