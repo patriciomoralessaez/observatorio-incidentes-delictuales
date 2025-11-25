@@ -276,25 +276,14 @@
                     onEachFeature: (feature, layer) => {
 					    let props = feature.properties;
 					
-					    // Foto: si existe URL válida, mostrar <img>, si no, texto.
-					    let fotoHTML = "";
-					
-					    if (props.foto && typeof props.foto === "string" && props.foto.trim() !== "") {
-					        fotoHTML = `<b>Foto:</b><br>
-					                    <img src="${props.foto}" 
-					                         alt="Foto incidente" 
-					                         style="width: 220px; margin-top: 5px; border-radius: 6px;">`;
-					    } else {
-					        fotoHTML = `<b>Foto:</b> Sin foto`;
+					    // Obtener URL pequeña de fotografía
+					    let imgUrl = null;
+					    if (props._attachments && Array.isArray(props._attachments) && props._attachments.length > 0) {
+					        const att = props._attachments.find(a => a.is_deleted === false) || props._attachments[0];
+					        if (att && att.download_small_url) {
+					            imgUrl = att.download_small_url;
+					        }
 					    }
-					
-					    layer.bindPopup(`
-					        <b>Tipo:</b> ${props.tipo || "No definido"}<br>
-					        <b>Fecha:</b> ${props.fecha || "Sin fecha"}<br>
-					        <b>Descripción:</b> ${props.descripcion || "Sin información"}<br>
-					        ${fotoHTML}
-					    `);
-						}
 					
 					    // Construcción HTML del popup
 					    let fotoHtml = imgUrl
@@ -328,4 +317,3 @@
 
 </body>
 </html>
-
