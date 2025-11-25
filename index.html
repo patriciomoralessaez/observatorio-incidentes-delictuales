@@ -31,7 +31,7 @@
             height: 100vh;
             width: 100vw;
         }
-
+        
         /* SIDEBAR */
         #sidebar {
             width: 340px;
@@ -255,7 +255,7 @@
     let capaIncidentes;
 
     function cargarIncidentes() {
-        fetch("data/incidentes_validados.geojson")
+        fetch("data/incidentes_validos.geojson")
             .then(r => r.json())
             .then(geojson => {
 
@@ -296,3 +296,4 @@
 
 </body>
 </html>
+
