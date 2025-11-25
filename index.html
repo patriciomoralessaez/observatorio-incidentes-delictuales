@@ -276,23 +276,28 @@
                     onEachFeature: (feature, layer) => {
 					    let props = feature.properties;
 					
-					    // Foto: si existe URL válida, mostrar <img>, si no, texto.
-					    let fotoHTML = "";
+					    // Obtener URL pequeña de la imagen si existe
+					    let imgUrl = null;
+					    if (props._attachments && Array.isArray(props._attachments) && props._attachments.length > 0) {
+					        // Buscar el primer attachment que no esté eliminado
+					        const att = props._attachments.find(a => a.is_deleted === false) || props._attachments[0];
 					
-					    if (props.foto && typeof props.foto === "string" && props.foto.trim() !== "") {
-					        fotoHTML = `<b>Foto:</b><br>
-					                    <img src="${props.foto}" 
-					                         alt="Foto incidente" 
-					                         style="width: 220px; margin-top: 5px; border-radius: 6px;">`;
-					    } else {
-					        fotoHTML = `<b>Foto:</b> Sin foto`;
+					        if (att && att.download_small_url) {
+					            imgUrl = att.download_small_url;
+					        }
 					    }
 					
+					    // Construir bloque HTML para la imagen
+					    let imgHtml = imgUrl 
+					        ? `<br><b>Foto:</b><br><img src="${imgUrl}" style="width:150px; border-radius:6px; margin-top:5px;">`
+					        : `<br><b>Foto:</b> Sin foto`;
+					
+					    // Popup con todos los atributos
 					    layer.bindPopup(`
 					        <b>Tipo:</b> ${props.tipo || "No definido"}<br>
 					        <b>Fecha:</b> ${props.fecha || "Sin fecha"}<br>
-					        <b>Descripción:</b> ${props.descripcion || "Sin información"}<br>
-					        ${fotoHTML}
+					        <b>Descripción:</b> ${props.descripcion || "Sin información"}
+					        ${imgHtml}
 					    `);
 }
                 }).addTo(map);
