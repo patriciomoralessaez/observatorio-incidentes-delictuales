@@ -276,31 +276,30 @@
                     onEachFeature: (feature, layer) => {
 					    let props = feature.properties;
 					
-					    // Obtener URL pequeña de fotografía
+					    // Obtener URL pequeña de la imagen si existe
 					    let imgUrl = null;
 					    if (props._attachments && Array.isArray(props._attachments) && props._attachments.length > 0) {
+					        // Buscar el primer attachment que no esté eliminado
 					        const att = props._attachments.find(a => a.is_deleted === false) || props._attachments[0];
+					
 					        if (att && att.download_small_url) {
 					            imgUrl = att.download_small_url;
 					        }
 					    }
 					
-					    // Construcción HTML del popup
-					    let fotoHtml = imgUrl
-					        ? `<br><b>Foto:</b><br>
-					           <img src="${imgUrl}" 
-					                style="display:block; max-width:250px; height:auto; margin-top:6px; border-radius:6px;">`
-					        : `<br><b>Foto:</b> Sin fotografía`;
+					    // Construir bloque HTML para la imagen
+					    let imgHtml = imgUrl 
+					        ? `<br><b>Foto:</b><br><img src="${imgUrl}" style="width:150px; border-radius:6px; margin-top:5px;">`
+					        : `<br><b>Foto:</b> Sin foto`;
 					
-					    let popupHTML = `
+					    // Popup con todos los atributos
+					    layer.bindPopup(`
 					        <b>Tipo:</b> ${props.tipo || "No definido"}<br>
 					        <b>Fecha:</b> ${props.fecha || "Sin fecha"}<br>
-					        <b>Descripción:</b> ${props.descripcion || "Sin información"}<br>
-					        ${fotoHtml}
-					    `;
-					
-					    layer.bindPopup(popupHTML, { maxWidth: 300 });
-					};
+					        <b>Descripción:</b> ${props.descripcion || "Sin información"}
+					        ${imgHtml}
+					    `);
+					}
 
                 }).addTo(map);
 
