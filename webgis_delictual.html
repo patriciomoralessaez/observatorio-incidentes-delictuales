@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGIS - Incidentes Delictuales</title>
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        :root {
+            --primary: #0066b8;
+            --primary-dark: #004d8a;
+            --bg-light: #f4f6f8;
+            --card-bg: #ffffff;
+            --border: #d9d9d9;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background: var(--bg-light);
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* SIDEBAR */
+        #sidebar {
+            width: 340px;
+            background: var(--card-bg);
+            border-right: 1px solid var(--border);
+            padding: 18px;
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+        }
+
+        #sidebar h2 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+
+        #map {
+            flex: 1;
+            height: 100%;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        .stat {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--primary-dark);
+        }
+
+        label {
+            font-weight: bold;
+            margin-top: 8px;
+            display: block;
+        }
+
+        select, input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button, .btn-form {
+            padding: 10px 15px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            display: block;
+            margin-top: 12px;
+            width: 90%;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: bold;
+            transition: 0.2s ease;
+        }
+
+        button:hover, .btn-form:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Submenú filtros (collapsible) */
+        .collapsible-header {
+            background: var(--primary);
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .collapsible-content {
+            display: none;
+            margin-top: 10px;
+        }
+
+        /* Scrollbar suave */
+        #sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+        #sidebar::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ENCABEZADO SUPERIOR -->
+<div id="topbar" style="width:100%; background:#004b80; color:white; padding:15px; box-sizing:border-box;">
+    <h1 style="margin:0; font-size:22px;">  Observatorio Comunitario de Incidentes Delictuales</h1>
+    <p style="margin:5px 0 0; font-size:14px; max-width:900px;">
+        Plataforma ciudadana para registrar, visualizar y comprender incidentes delictuales reportados por la comunidad.
+        Solo se muestran aquellos casos validados para asegurar la fiabilidad de la información. Los registros enviados
+        se verán reflejados en el sitio en un plazo de 3 días hábiles.
+    </p>
+</div>
+
+<div id="container">
+
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+
+        <h2>  Incidentes Delictuales</h2>
+        <br>
+
+        <!-- BOTÓN FORMULARIO -->
+        <a class="btn-form" href="https://ee.kobotoolbox.org/x/6th4bOdZ" target="_blank">
+            Registrar nuevo incidente
+        </a>
+        <br>
+
+        <!-- RESUMEN -->
+        <div class="card">
+            <h3>Resumen</h3>
+            <p>Total: <span class="stat" id="stat-validados">0</span></p>
+
+            <!-- BOTÓN HACIA PANEL DE ANÁLISIS -->
+            <button onclick="location.href='analisis_localidad.html'">
+                Ver análisis detallado
+            </button>
+        </div>
+
+        <!-- FILTROS (COLLAPSIBLE) -->
+        <div class="card">
+            <div class="collapsible-header" onclick="toggleCollapsible()">
+                Filtros ▲▼
+            </div>
+
+            <div id="filtros-content" class="collapsible-content">
+
+                <label>Tipo de incidente:</label>
+                <select id="filtro-tipo">
+                    <option value="">Todos</option>
+                    <option value="robo">Robo</option>
+                    <option value="agresion">Agresión</option>
+                    <option value="vandalismo">Vandalismo</option>
+                    <option value="otros">Otros</option>
+                </select>
+
+                <label>Fecha mínima:</label>
+                <input type="date" id="filtro-fecha-min">
+
+                <label>Fecha máxima:</label>
+                <input type="date" id="filtro-fecha-max">
+
+                <button id="btn-filtrar">Aplicar filtros</button>
+            </div>
+        </div>
+
+        <!-- LEYENDA -->
+        <div class="card">
+            <h3>Leyenda</h3>
+            <p>🔵 Punto azul = incidente registrado</p>
+        </div>
+
+    </div>
+
+    <!-- MAPA -->
+    <div id="map"></div>
+
+</div>
+
+<script>
+    /* --- SUBMENÚ DESPLEGABLE --- */
+    function toggleCollapsible() {
+        const content = document.getElementById("filtros-content");
+        content.style.display = (content.style.display === "block") ? "none" : "block";
+    }
+
+    // ---------- Base Layers ----------
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19});
+    const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3']
+    });
+    const googleLabels = L.tileLayer('https://{s}.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', {
+        maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3']
+    });
+    const googleHybrid = L.layerGroup([googleSat, googleLabels]);
+
+    const map = L.map('map', {layers: [osm]});
+
+    L.control.layers({"OpenStreetMap": osm, "Google Satélite + Etiquetas": googleHybrid}).addTo(map);
+
+    // Fallback a Biobío
+    function setFallbackBiobio() {
+        map.setView([-36.8201, -73.0443], 8);
+    }
+
+    // Geolocalización
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const {latitude, longitude, accuracy} = pos.coords;
+                if (accuracy > 50000) { setFallbackBiobio(); return; }
+                map.setView([latitude, longitude], 14);
+            },
+            () => setFallbackBiobio(),
+            {enableHighAccuracy: true, timeout: 8000}
+        );
+    } else { setFallbackBiobio(); }
+</script>
+
+<script>
+    /* ===============================
+       CARGAR GEOJSON VALIDADO
+    ================================== */
+
+    let capaIncidentes;
+
+    function cargarIncidentes() {
+        fetch("data/incidentes_validados.geojson")
+            .then(r => r.json())
+            .then(geojson => {
+
+                // Si ya hay una capa previa, eliminarla y cargar nuevamente
+                if (capaIncidentes) {
+                    map.removeLayer(capaIncidentes);
+                }
+
+                capaIncidentes = L.geoJSON(geojson, {
+                    pointToLayer: (feature, latlng) =>
+                        L.circleMarker(latlng, {
+                            radius: 6,
+                            color: "#0057e7",
+                            weight: 2,
+                            fillColor: "#55a7ff",
+                            fillOpacity: 0.9
+                        }),
+                    onEachFeature: (feature, layer) => {
+                        let props = feature.properties;
+                        layer.bindPopup(`
+                            <b>Tipo:</b> ${props.tipo || "No definido"}<br>
+                            <b>Fecha:</b> ${props.fecha || "Sin fecha"}<br>
+                            <b>Descripción:</b> ${props.descripcion || "Sin información"}
+                        `);
+                    }
+                }).addTo(map);
+
+                // Actualiza contador en el sidebar
+                document.getElementById("stat-validados").innerText =
+                    geojson.features.length;
+            })
+            .catch(err => console.error("Error cargando GeoJSON:", err));
+    }
+
+    cargarIncidentes();
+</script>
+
+
+</body>
+</html>
