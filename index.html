@@ -270,14 +270,27 @@
 	        color: "#283593",
 	        fillColor: "#536dfe"
 	    },
+		violencia: {
+	        color: "#0057e7",
+	        fillColor: "#55a7ff"
+	    },
+		drogas: {
+	        color: "#0057e7",
+	        fillColor: "#55a7ff"
+	    },
+		acoso: {
+	        color: "#0057e7",
+	        fillColor: "#55a7ff"
+	    },
+		armas: {
+	        color: "#0057e7",
+	        fillColor: "#55a7ff"
+	    },
 	    otros: {
 	        color: "#6d4c41",
 	        fillColor: "#bcaaa4"
 	    },
-	    default: {
-	        color: "#0057e7",
-	        fillColor: "#55a7ff"
-	    }
+	    
 	};
 
     function cargarIncidentes() {
@@ -293,7 +306,7 @@
 
                 capaIncidentes = L.geoJSON(geojson, {
                     pointToLayer: (feature, latlng) => {
-					    const tipo = feature.properties.tipo || "default";
+					    const tipo = feature.properties.tipo_incidente || "default";
 					    const estilo = simbologia[tipo] || simbologia.default;
 
 					    return L.circleMarker(latlng, {
@@ -308,8 +321,8 @@
                     onEachFeature: (feature, layer) => {
                         let props = feature.properties;
                         layer.bindPopup(`
-                            <b>Tipo:</b> ${props.tipo || "No definido"}<br>
-                            <b>Fecha:</b> ${props.fecha || "Sin fecha"}<br>
+                            <b>Tipo:</b> ${props.tipo_incidente || "No definido"}<br>
+                            <b>Fecha:</b> ${props.fecha_hora || "Sin fecha"}<br>
                             <b>Descripción:</b> ${props.descripcion || "Sin información"}
                         `);
                     }
@@ -339,13 +352,13 @@
 	            const props = f.properties;
 
 	            // Filtrar por tipo
-	            if (tipoFiltro && props.tipo !== tipoFiltro) return false;
+	            if (tipoFiltro && props.tipo_incidente !== tipoFiltro) return false;
 
 	            // Filtrar por fecha mínima
-	            if (fechaMin && props.fecha < fechaMin) return false;
+	            if (fechaMin && props.fecha_hora < fechaMin) return false;
 
 	            // Filtrar por fecha máxima
-	            if (fechaMax && props.fecha > fechaMax) return false;
+	            if (fechaMax && props.fecha_hora > fechaMax) return false;
 
 	            return true;
 	        })
@@ -357,7 +370,7 @@
 	    // Dibujar nueva capa filtrada
 	    capaIncidentes = L.geoJSON(filtradas, {
 	        pointToLayer: (feature, latlng) => {
-	            const tipo = feature.properties.tipo || "default";
+	            const tipo = feature.properties.tipo_incidente || "default";
 	            const estilo = simbologia[tipo] || simbologia.default;
 
 	            return L.circleMarker(latlng, {
@@ -381,3 +394,4 @@
 
 </body>
 </html>
+
